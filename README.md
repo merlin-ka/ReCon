@@ -2,7 +2,7 @@
 
 A **Re**mote**Con**trol for computers
 
-[Screenshot](screenshot.png)
+<img src="screenshot.png" alt="Screenshot" height="600">
 
 ## Usage
 
