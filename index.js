@@ -8,39 +8,42 @@ const ok  = res => res.status(204).send()
 const err = res => res.status(400).send()
 
 app.use(express.static(__dirname + "/public"))
+app.use(express.json())
 
-app.get("/key/:key/:action", (req, res) => {
-    if (req.params.action == "tap") {
-        robot.keyTap(req.params.key)
-    }
-    else {
-        robot.keyToggle(req.params.key, req.params.action)
+app.post("/robot", (req, res) => {
+    switch (req.body.action) {
+        case "keyboardToggle":
+            robot.keyToggle(req.body.key, req.body.keyState)
+            break
+        
+        case "mouseToggle":
+            robot.mouseToggle(req.body.buttonState, req.body.button)
+            break
+        
+        case "mouseClick":
+            robot.mouseClick(req.body.button)
+            break
+        
+        case "mouseMove":
+            mouseMove(req.body.x, req.body.y)
+            break
+        
+        default:
+            err(res)
+            return
     }
 
     ok(res)
 })
 
-app.get("/mouse/:button/:action", (req, res) => {
-    if (req.params.action == "click") {
-        robot.mouseClick(req.params.button)
-    }
-    else {
-        robot.mouseToggle(req.params.action, req.params.button)
-    }
-
-    ok(res)
-})
-
-app.get("/mouse/move/:x/:y", (req, res) => {
+const mouseMove = (x, y) => {
     const pos = robot.getMousePos()
 
-    const targetX = pos.x + parseInt(req.params.x)
-    const targetY = pos.y + parseInt(req.params.y)
+    const targetX = pos.x + x
+    const targetY = pos.y + y
 
     robot.moveMouse(targetX, targetY)
-
-    ok(res)
-})
+}
 
 app.listen(port, () => {
     console.log("listening on port " + port)

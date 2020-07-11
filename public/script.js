@@ -1,8 +1,9 @@
 /** Send a simple GET request and ignore the response */
-const sendRequest = url => {
+const sendRequest = json => {
     const req = new XMLHttpRequest()
-    req.open("GET", url)
-    req.send()
+    req.open("POST", "/robot")
+    req.setRequestHeader("content-type", "application/json")
+    req.send(JSON.stringify(json))
 }
 
 
@@ -10,32 +11,56 @@ const sendRequest = url => {
 // ####################### Button event handlers ####################### //
 // ##################################################################### //
 
-const holdKey = key => {
+const toggleKey = key => {
+    const down = {
+        action: "keyboardToggle",
+        key: key,
+        keyState: "down",
+    }
+
+    const up = {
+        action: "keyboardToggle",
+        key: key,
+        keyState: "up",
+    }
+
     return element => {
-        element.addEventListener("touchstart", () => sendRequest(`/key/${key}/down`))
-        element.addEventListener("touchend",   () => sendRequest(`/key/${key}/up`))
+        element.addEventListener("touchstart", () => sendRequest(down))
+        element.addEventListener("touchend",   () => sendRequest(up))
     }
 }
 
-const holdMouseButton = button => {
+const toggleMouse = button => {
+    const down = {
+        action: "mouseToggle",
+        button: button,
+        buttonState: "down",
+    }
+
+    const up = {
+        action: "mouseToggle",
+        button: button,
+        buttonState: "up",
+    }
+
     return element => {
-        element.addEventListener("touchstart", () => sendRequest(`/mouse/${button}/down`))
-        element.addEventListener("touchend",   () => sendRequest(`/mouse/${button}/up`))
+        element.addEventListener("touchstart", () => sendRequest(down))
+        element.addEventListener("touchend",   () => sendRequest(up))
     }
 }
 
 const buttonConfig = {
-    "button-left":        holdKey("left"),
-    "button-right":       holdKey("right"),
-    "button-up":          holdKey("up"),
-    "button-down":        holdKey("down"),
-    "button-vol-up":      holdKey("audio_vol_up"),
-    "button-vol-down":    holdKey("audio_vol_down"),
-    "button-vol-mute":    holdKey("audio_mute"),
-    "button-space":       holdKey("space"),
-    "button-enter":       holdKey("enter"),
-    "button-left-click":  holdMouseButton("left"),
-    "button-right-click": holdMouseButton("right"),
+    "button-left":        toggleKey("left"),
+    "button-right":       toggleKey("right"),
+    "button-up":          toggleKey("up"),
+    "button-down":        toggleKey("down"),
+    "button-vol-up":      toggleKey("audio_vol_up"),
+    "button-vol-down":    toggleKey("audio_vol_down"),
+    "button-vol-mute":    toggleKey("audio_mute"),
+    "button-space":       toggleKey("space"),
+    "button-enter":       toggleKey("enter"),
+    "button-left-click":  toggleMouse("left"),
+    "button-right-click": toggleMouse("right"),
 }
 
 for (const id in buttonConfig) {
@@ -59,8 +84,24 @@ const touchpad = document.getElementById("touchpad")
 let lastTouchStart    = 0
 let lastTouchPosition = null
 
-const click = ()       => sendRequest("/mouse/left/click")
-const move  = ({x, y}) => sendRequest(`/mouse/move/${x}/${y}`)
+const click = () => {
+    const body = {
+        action: "mouseClick",
+        button: "left",
+    }
+
+    sendRequest(body)
+}
+
+const move = ({ x, y }) => {
+    const body = {
+        action: "mouseMove",
+        x: x,
+        y: y,
+    }
+
+    sendRequest(body)
+}
 
 // Get touch position relative to touchpad from a touch event
 const getRelativePosition = e => {
